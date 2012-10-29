@@ -1,0 +1,58 @@
+
+NAME
+    proxcat.py - A tool for showing the data in a prox logfile
+
+SYNOPSIS
+    proxcat.py [-ciotxl] [-a addr] files...
+
+DESCRIPTION
+    The proxcat.py tool processes log files created by proxcat.py
+    and shows them to the user in various ways. It processes each
+    of the files specified on the command line in order. In normal
+    operation all of the data from each file is written out to
+    standard output in the order it was received by the proxy. Data
+    from all connections and both incoming and outgoing directions
+    is shown interspersed. If the -i option is specified, only the
+    data received as input from the client is shown. If the -o option
+    is specified only the data received from the remote host and
+    output to the client is shown. If both or neither flag is given
+    then both input and output is shown. If an address is specified
+    with the -a option, only data from the given connection specifier
+    (given as an IP address and host separated by a colon) are shown.
+    If the -t option is specified the timestamp, address and direction
+    of data is printed out before each section of data.  If the -c option 
+    is specified all data in the out direction is colored red and
+    all data in the output direction is colored green. If the
+    -x flag is specified the data is shown in hexdump format rather
+    than literally. Finally, if the -l flag is given, a list of each
+    session is shown by printing the timestamp and address for the first
+    occurance of each address in the log.
+
+
+EXAMPLES
+
+    List all sessions in log.txt:
+
+        $ ./proxcat.py -l log.txt
+
+    Dump out the data in all log*.txt files:
+
+        $ ./proxcat.py log*.txt
+
+    Dump out the data in log.txt from the client at 127.0.0.1:3333 as 
+    hex with color and timestamps:
+
+        $ ./prox.py -xtc -a 127.0.0.1:3333 log.txt
+
+    Dump out only the data sent from 127.0.0.1:3333 to the proxy:
+
+        $ ./prox.py -i -a 127.0.0.1:3333 log.txt 
+
+
+BUGS
+    Color codes are sent inline in the standard output stream. If
+    the output stream is truncated (for example by piping the data to
+    "head") the color-reset code might not be received and the terminal
+    will be left in an unusual color mode.
+
+

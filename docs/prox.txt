@@ -1,0 +1,95 @@
+
+NAME
+    prox.py - A TCP proxy supporting SSL
+
+SYNOPSIS
+    prox.py [opts] addr port
+    prox.py [opts] -s [-C cert] [-A cname] addr port
+    opts: [-1] [-6] [-b bindaddr] [-L localport] [-l logfile]
+
+DESCRIPTION
+    The prox.py tool provides a TCP proxy that proxies data between
+    a locally accepted TCP connection and a connection to a remote host.
+    The address and port arguments are required and specify the remote
+    host to establish a connection to. If the -6 argument is given
+    all addresses are treated as IPv6 addresses, otherwise as IPv4
+    addresses. There is no support for proxying between IPv4 and IPv6.
+    [XXX this should be possible using ipv4 compatibility mode of ipv6.
+    I need to test and verify this.  it might require a sockopt)]
+    The prox.py tool will listen on for connections to the port port
+    in the command line unless specified with the -L option and
+    listen on all interfaces unless specified with the -b option.
+    Normally the program will accept any number of TCP connections
+    and proxy them all (possibly concurrently) unless the -1 option
+    is given, in which case only one connection is processed.
+
+    If a log filename is specified with the -l option, all data
+    proxied by the program will be written out to the specified log
+    file. Data is written out in lines consisting of four space-separated
+    columns: timestamp, client address, direction and data. The
+    timestamp is a floating point value representing seconds since
+    UNIX epoch. The client address contains the address of the client
+    that initiated the connection to the server in address:port
+    format. The direction is given by the character "i" for data
+    incoming from the client and copied to the remote host or "o" for 
+    data from the remote host and written out to the client. The
+    data is given in hex with no spaces. A utility named proxcat.py
+    is provided for consuming this data and presenting it to the
+    user in a friendly manner.
+
+    The prox.py tool supports SSL connections, which is specified by
+    the -s option. When this mode is used, both incoming and outgoing
+    connections will use SSL. When using the SSL mode, an SSL certificate
+    and private key are required. When not using the auto-cert option, the
+    SSL certificate is read from the cert.pem file unless specified by 
+    the -C option. When using the auto-cert option, a certificate is 
+    automatically generated for the CName specified by the -A flag and
+    is signed by the CA key in ca.pem or the key specified with the
+    -C option. Use of the auto-certificate option requires that the
+    M2Crypto package be installed on the system. The automatically
+    generated certificate is written to disk as autocert.pem.
+
+    All certificate file names must be specified without the ".pem" 
+    extension. More details of the certificate creation can be found in 
+    the documentation of the ca.py tool.
+
+    The prox.py utility can be run from a single file without any 
+    dependencies other than Python unless the -A option is used, in
+    which case ca.py must be present and the M2Crypto package must
+    be installed. M2Crypto is available from  
+    http://www.heikkitoivonen.net/m2crypto/ 
+    
+
+EXAMPLES
+
+    Proxy data incoming to port 80 to www.google.com while logging the
+    data to log.txt:
+
+        $ ./prox.py -l log.txt www.google.com 80
+
+    Proxy data incoming to port 8888 to www.google.com using SSL.
+    The SSL connection will use cert.pem as its certificate:
+
+        $ ./prox.py -s -L 8888 www.google.com 443
+
+    Generate a certificate for www.evil.com signed by the key in
+    myca.pem and use it when proxying data to the real server
+    at 1.2.3.4 while logging data to log.txt:
+
+        $ ./prox.py -s -A www.evil.com -C myca -l log.txt 1.2.3.4 443
+
+
+BUGS
+    This program has no facility for proxying between IPv6 and IPv6
+    or between SSL and non-SSL connections.
+
+    The SSL handshake is performed synchronously for implementation
+    simplicity. This could cause problems when serving multiple 
+    connections if the SSL handshake does not complete in a timely
+    manner.
+
+    The auto-certificate feature must write out the certificate to
+    autocert.pem and then read it back in. This could lead to problems
+    if many instances of the program are using this feature in the
+    same directory.
+
