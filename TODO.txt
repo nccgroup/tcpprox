@@ -1,0 +1,7 @@
+- error messages are not great.
+  - should check if the necessary cert files are present before using
+    them so I can print out a more meaningful error message
+
+- possibly handle half-closes
+
+- possibly handle asynchronous ssl handshakes
