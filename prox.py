@@ -11,18 +11,25 @@ TODO:
 """
 
 from socket import *
-import errno, optparse, socket, ssl, time
+import errno, optparse, os, socket, ssl, time
 from select import *
 
 class Error(Exception) :
     pass
 
+def fail(fmt, *args) :
+    print "error:", fmt % args
+    raise SystemExit(1)
+
 def tcpListen(six, addr, port, blk, useSsl, cert=None, key=None) :
     """Return a listening server socket."""
     s = socket.socket(AF_INET6 if six else AF_INET, SOCK_STREAM)
-    s.setsockopt(SOL_SOCKET, TCP_NODELAY, 1)
+    s.setsockopt(IPPROTO_TCP, TCP_NODELAY, 1)
     if useSsl :
-        # XXX certificate?
+        if not os.path.exists(cert) :
+            fail("cert file %s doesnt exist", cert)
+        if not os.path.exists(key) :
+            fail("cert key %s doesnt exist", key)
         s = ssl.wrap_socket(s, server_side=True, certfile=cert, keyfile=key)
     s.bind((addr,port))
     s.listen(5)
@@ -32,7 +39,7 @@ def tcpListen(six, addr, port, blk, useSsl, cert=None, key=None) :
 def tcpConnect(six, addr, port, blk, useSsl) :
     """Returned a connected client socket (blocking on connect...)"""
     s = socket.socket(AF_INET6 if six else AF_INET, SOCK_STREAM)
-    s.setsockopt(SOL_SOCKET, TCP_NODELAY, 1)
+    s.setsockopt(IPPROTO_TCP, TCP_NODELAY, 1)
     if useSsl :
         s = ssl.wrap_socket(s, cert_reqs=ssl.CERT_NONE)
     s.connect((addr,port))
