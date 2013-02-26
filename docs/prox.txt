@@ -80,7 +80,7 @@ EXAMPLES
 
 
 BUGS
-    This program has no facility for proxying between IPv6 and IPv6
+    This program has no facility for proxying between IPv4 and IPv6
     or between SSL and non-SSL connections.
 
     The SSL handshake is performed synchronously for implementation
