@@ -28,7 +28,7 @@ def tcpListen(six, addr, port, blk, useSsl, cert=None, key=None) :
     if useSsl :
         if not os.path.exists(cert) :
             fail("cert file %s doesnt exist", cert)
-        if not os.path.exists(key) :
+        if key and not os.path.exists(key) :
             fail("cert key %s doesnt exist", key)
         s = ssl.wrap_socket(s, server_side=True, certfile=cert, keyfile=key)
     s.bind((addr,port))
