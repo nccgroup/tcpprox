@@ -5,7 +5,7 @@ NAME
 SYNOPSIS
     prox.py [opts] addr port
     prox.py [opts] -s [-C cert] [-A cname] addr port
-    opts: [-1] [-6] [-b bindaddr] [-L localport] [-l logfile] [--ssl-in] [--ssl-out]
+    opts: [-1] [-6] [-b bindaddr] [-L localport] [-l logfile] [--ssl-in] [--ssl-out] [-3] [-T]
 
 DESCRIPTION
     The prox.py tool provides a TCP proxy that proxies data between
@@ -41,7 +41,9 @@ DESCRIPTION
     the --ssl-in and --ssl-out options. When --ssl-in is specified,
     incoming connections use the SSL protocol. When --ssl-out is
     specified, outgoing connections use the SSL protocol. Specifying
-    -s is equivalent to specifying both --ssl-in and -ssl-out.
+    -s is equivalent to specifying both --ssl-in and -ssl-out. If
+    -3 is specified, the SSLv3 protocol is used. If -T is specified,
+    TLSv1 is specified, otherwise SSLv23 is used.
 
     When using --ssl-in, an SSL certificate and private key are required.
     When not using the auto-cert option, the SSL certificate is read

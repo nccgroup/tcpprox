@@ -21,28 +21,28 @@ def fail(fmt, *args) :
     print "error:", fmt % args
     raise SystemExit(1)
 
-def tcpListen(six, addr, port, blk, useSsl, cert=None, key=None) :
+def tcpListen(six, addr, port, blk, sslProto, cert=None, key=None) :
     """Return a listening server socket."""
     s = socket.socket(AF_INET6 if six else AF_INET, SOCK_STREAM)
     s.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
     s.setsockopt(IPPROTO_TCP, TCP_NODELAY, 1)
-    if useSsl :
+    if sslProto is not None :
         if not os.path.exists(cert) :
             fail("cert file %s doesnt exist", cert)
         if key and not os.path.exists(key) :
             fail("cert key %s doesnt exist", key)
-        s = ssl.wrap_socket(s, server_side=True, certfile=cert, keyfile=key)
+        s = ssl.wrap_socket(s, ssl_version=sslProto, server_side=True, certfile=cert, keyfile=key)
     s.bind((addr,port))
     s.listen(5)
     s.setblocking(blk)
     return s
 
-def tcpConnect(six, addr, port, blk, useSsl) :
+def tcpConnect(six, addr, port, blk, sslProto) :
     """Returned a connected client socket (blocking on connect...)"""
     s = socket.socket(AF_INET6 if six else AF_INET, SOCK_STREAM)
     s.setsockopt(IPPROTO_TCP, TCP_NODELAY, 1)
-    if useSsl :
-        s = ssl.wrap_socket(s, cert_reqs=ssl.CERT_NONE)
+    if sslProto is not None :
+        s = ssl.wrap_socket(s, cert_reqs=ssl.CERT_NONE, ssl_version=sslProto)
     s.connect((addr,port))
     s.setblocking(blk)
     return s
@@ -53,11 +53,21 @@ def safeClose(x) :
     except Exception, e :
         pass
 
+def getSslVers(opt, enable) :
+    if enable :
+        if opt.sslV3 :
+            return ssl.PROTOCOL_SSLv3
+        elif opt.TLS :
+            return ssl.PROTOCOL_TLSv1
+        else :
+            return ssl.PROTOCOL_SSLv23
+
 class Server(object) :
     def __init__(self, opt, q) :
         self.opt = opt
         sslCert = opt.cert + ".pem"
-        self.sock = tcpListen(opt.ip6, opt.bindAddr, opt.locPort, 0, opt.sslIn, sslCert, None)
+        ver = getSslVers(opt, opt.sslIn)
+        self.sock = tcpListen(opt.ip6, opt.bindAddr, opt.locPort, 0, ver, sslCert, None)
         self.q = q
     def preWait(self, rr, r, w, e) :
         r.append(self.sock)
@@ -161,7 +171,8 @@ class Proxy(object) :
         self.opt = opt
         self.cl = Half(opt, sock, addr, 'i')
         # note: blocking connect for simplicity for now...
-        peer = tcpConnect(opt.ip6, opt.addr, opt.port, 0, opt.sslOut)
+        ver = getSslVers(opt, opt.sslOut)
+        peer = tcpConnect(opt.ip6, opt.addr, opt.port, 0, ver)
         self.peer = Half(opt, peer, addr, 'o')
 
         self.cl.dest = self.peer
@@ -213,6 +224,8 @@ def getopts() :
     p.add_option("-s", dest="ssl", action="store_true", help="Use SSL for incomign and outgoing connections")
     p.add_option("--ssl-in", dest="sslIn", action="store_true", help="Use SSL for incoming connections")
     p.add_option("--ssl-out", dest="sslOut", action="store_true", help="Use SSL for outgoing connections")
+    p.add_option('-3', dest='sslV3', action='store_true', help='Use SSLv3 protocol')
+    p.add_option('-T', dest='TLS', action='store_true', help='Use TLSv1 protocol')
     p.add_option("-C", dest="cert", default=None, help="Cert for SSL")
     p.add_option("-A", dest="autoCname", action="store", help="CName for Auto-generated SSL cert")
     p.add_option('-1', dest='oneshot', action='store_true', help="Handle a single connection")
@@ -221,6 +234,8 @@ def getopts() :
     if opt.ssl :
         opt.sslIn = True
         opt.sslOut = True
+    if opt.sslV3 and opt.TLS :
+        p.error("-3 and -T cannot be used together")
     if opt.bindAddr == '0.0.0.0' and opt.ip6 :
         opt.bindAddr = '::'
     if len(args) != 2 :
