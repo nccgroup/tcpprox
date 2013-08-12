@@ -13,9 +13,10 @@ DESCRIPTION
     The address and port arguments are required and specify the remote
     host to establish a connection to. If the -6 argument is given
     all addresses are treated as IPv6 addresses, otherwise as IPv4
-    addresses. There is no support for proxying between IPv4 and IPv6.
-    [XXX this should be possible using ipv4 compatibility mode of ipv6.
-    I need to test and verify this.  it might require a sockopt)]
+    addresses. When IPv6 is used, the proxy will attempt to enable
+    IPv4-in-IPv6 compatibility if it is supported by the operating 
+    system.
+
     The prox.py tool will listen on for connections to the port port
     in the command line unless specified with the -L option and
     listen on all interfaces unless specified with the -b option.
@@ -84,10 +85,13 @@ EXAMPLES
 
         $ ./prox.py -s -A www.evil.com -C myca -l log.txt 1.2.3.4 443
 
+    Proxy incoming data connections to port 8888 over IPv4 or IPv6
+    to port 80 of the 173.194.64.147 IPv4 address. Notice that an 
+    IPv4-in-IPv6 address is used to specify the target.
+
+        $ ./prox.py -6 -L 8888 ::ffff:173.194.64.147 80
 
 BUGS
-    This program has no facility for proxying between IPv4 and IPv6.
-
     The SSL handshake is performed synchronously for implementation
     simplicity. This could cause problems when serving multiple
     connections if the SSL handshake does not complete in a timely
