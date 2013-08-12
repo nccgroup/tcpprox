@@ -5,7 +5,7 @@ NAME
 SYNOPSIS
     prox.py [opts] addr port
     prox.py [opts] -s [-C cert] [-A cname] addr port
-    opts: [-1] [-6] [-b bindaddr] [-L localport] [-l logfile]
+    opts: [-1] [-6] [-b bindaddr] [-L localport] [-l logfile] [--ssl-in] [--ssl-out]
 
 DESCRIPTION
     The prox.py tool provides a TCP proxy that proxies data between
@@ -31,34 +31,38 @@ DESCRIPTION
     UNIX epoch. The client address contains the address of the client
     that initiated the connection to the server in address:port
     format. The direction is given by the character "i" for data
-    incoming from the client and copied to the remote host or "o" for 
+    incoming from the client and copied to the remote host or "o" for
     data from the remote host and written out to the client. The
     data is given in hex with no spaces. A utility named proxcat.py
     is provided for consuming this data and presenting it to the
     user in a friendly manner.
 
-    The prox.py tool supports SSL connections, which is specified by
-    the -s option. When this mode is used, both incoming and outgoing
-    connections will use SSL. When using the SSL mode, an SSL certificate
-    and private key are required. When not using the auto-cert option, the
-    SSL certificate is read from the cert.pem file unless specified by 
-    the -C option. When using the auto-cert option, a certificate is 
-    automatically generated for the CName specified by the -A flag and
-    is signed by the CA key in ca.pem or the key specified with the
-    -C option. Use of the auto-certificate option requires that the
-    M2Crypto package be installed on the system. The automatically
-    generated certificate is written to disk as autocert.pem.
+    The prox.py tool supports SSL connections, which is specified with
+    the --ssl-in and --ssl-out options. When --ssl-in is specified,
+    incoming connections use the SSL protocol. When --ssl-out is
+    specified, outgoing connections use the SSL protocol. Specifying
+    -s is equivalent to specifying both --ssl-in and -ssl-out.
 
-    All certificate file names must be specified without the ".pem" 
-    extension. More details of the certificate creation can be found in 
+    When using --ssl-in, an SSL certificate and private key are required.
+    When not using the auto-cert option, the SSL certificate is read
+    from the cert.pem file unless specified by the -C option. When using
+    the auto-cert option, a certificate is automatically generated for
+    the CName specified by the -A flag and is signed by the CA key in
+    ca.pem or the key specified with the -C option. Use of the auto-
+    certificate option requires that the M2Crypto package be installed
+    on the system. The automatically generated certificate is written
+    to disk as autocert.pem.
+
+    All certificate file names must be specified without the ".pem"
+    extension. More details of the certificate creation can be found in
     the documentation of the ca.py tool.
 
-    The prox.py utility can be run from a single file without any 
+    The prox.py utility can be run from a single file without any
     dependencies other than Python unless the -A option is used, in
     which case ca.py must be present and the M2Crypto package must
-    be installed. M2Crypto is available from  
-    http://www.heikkitoivonen.net/m2crypto/ 
-    
+    be installed. M2Crypto is available from
+    http://www.heikkitoivonen.net/m2crypto/
+
 
 EXAMPLES
 
@@ -84,7 +88,7 @@ BUGS
     or between SSL and non-SSL connections.
 
     The SSL handshake is performed synchronously for implementation
-    simplicity. This could cause problems when serving multiple 
+    simplicity. This could cause problems when serving multiple
     connections if the SSL handshake does not complete in a timely
     manner.
 
