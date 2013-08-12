@@ -24,6 +24,7 @@ def fail(fmt, *args) :
 def tcpListen(six, addr, port, blk, useSsl, cert=None, key=None) :
     """Return a listening server socket."""
     s = socket.socket(AF_INET6 if six else AF_INET, SOCK_STREAM)
+    s.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
     s.setsockopt(IPPROTO_TCP, TCP_NODELAY, 1)
     if useSsl :
         if not os.path.exists(cert) :
