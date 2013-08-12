@@ -5,3 +5,15 @@
 - possibly handle half-closes
 
 - possibly handle asynchronous ssl handshakes
+
+- XXX Big bug!
+  - it looks like the SSL connection proxying is not working properly
+  - try --ssl-in but not -ssl-out,  using netcat as the listener
+    and openssl s_client as the connector
+    - at first the netcat's output gets sent
+    - after the openssl client types something, the netcat side
+      cant seem to send anything anymore!  but its still selecting!
+    - the openssl sender stuff doesnt get passed on to netcat until
+      one select later..  
+  some of this sounds like its my fault, but some of it sounds
+  potentially like a python issue..  needs more investigation!
