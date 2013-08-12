@@ -224,9 +224,9 @@ def getopts() :
         opt.cert = "ca" if opt.autoCname else "cert"
     if opt.ssl and opt.cert is None :
         if opt.autoCname is not None :
-            p.perror("specify CA cert")
+            p.error("specify CA cert")
         else :
-            p.perror("specify SSL cert")
+            p.error("specify SSL cert")
     opt.addr = args[0]
     try :
         opt.port = int(args[1])
