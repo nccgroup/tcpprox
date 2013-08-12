@@ -56,7 +56,7 @@ class Server(object) :
     def __init__(self, opt, q) :
         self.opt = opt
         sslCert = opt.cert + ".pem"
-        self.sock = tcpListen(opt.ip6, opt.bindAddr, opt.locPort, 0, opt.ssl, sslCert, None)
+        self.sock = tcpListen(opt.ip6, opt.bindAddr, opt.locPort, 0, opt.sslIn, sslCert, None)
         self.q = q
     def preWait(self, rr, r, w, e) :
         r.append(self.sock)
@@ -136,7 +136,6 @@ class Half(object) :
                 return self.error("eof", e)
             return self.error("recv ssl error", e)
         except socket.error, e : 
-            print e.errno
             if e.errno == errno.EWOULDBLOCK :
                 self.ready = False
                 return
@@ -161,7 +160,7 @@ class Proxy(object) :
         self.opt = opt
         self.cl = Half(opt, sock, addr, 'i')
         # note: blocking connect for simplicity for now...
-        peer = tcpConnect(opt.ip6, opt.addr, opt.port, 0, opt.ssl)
+        peer = tcpConnect(opt.ip6, opt.addr, opt.port, 0, opt.sslOut)
         self.peer = Half(opt, peer, addr, 'o')
 
         self.cl.dest = self.peer
@@ -210,12 +209,17 @@ def getopts() :
     p.add_option('-6', dest='ip6', action='store_true', help="Use IPv6")
     p.add_option("-b", dest="bindAddr", default="0.0.0.0", help="Address to bind to")
     p.add_option("-L", dest="locPort", type="int", help="Local port to listen on")
-    p.add_option("-s", dest="ssl", action="store_true", help="Use SSL")
+    p.add_option("-s", dest="ssl", action="store_true", help="Use SSL for incomign and outgoing connections")
+    p.add_option("--ssl-in", dest="sslIn", action="store_true", help="Use SSL for incoming connections")
+    p.add_option("--ssl-out", dest="sslOut", action="store_true", help="Use SSL for outgoing connections")
     p.add_option("-C", dest="cert", default=None, help="Cert for SSL")
     p.add_option("-A", dest="autoCname", action="store", help="CName for Auto-generated SSL cert")
     p.add_option('-1', dest='oneshot', action='store_true', help="Handle a single connection")
     p.add_option("-l", dest="logFile", help="Filename to log to")
     opt,args = p.parse_args()
+    if opt.ssl :
+        opt.sslIn = True
+        opt.sslOut = True
     if opt.bindAddr == '0.0.0.0' and opt.ip6 :
         opt.bindAddr = '::'
     if len(args) != 2 :
@@ -238,7 +242,7 @@ def getopts() :
 
 def main() :
     opt = getopts()
-    if opt.ssl and opt.autoCname :
+    if opt.sslIn and opt.autoCname :
         autoCert(opt.autoCname, opt.cert, "autocert")
         opt.cert = "autocert"
     opt.log = file(opt.logFile, 'w') if opt.logFile else None
