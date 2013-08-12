@@ -84,8 +84,7 @@ EXAMPLES
 
 
 BUGS
-    This program has no facility for proxying between IPv4 and IPv6
-    or between SSL and non-SSL connections.
+    This program has no facility for proxying between IPv4 and IPv6.
 
     The SSL handshake is performed synchronously for implementation
     simplicity. This could cause problems when serving multiple
@@ -97,3 +96,7 @@ BUGS
     if many instances of the program are using this feature in the
     same directory.
 
+    The server socket allows other programs to rebind over the same
+    port. This provides convenience when repeatedly running the same
+    proxy on the same port, but it can pose a security risk in some
+    situations.
