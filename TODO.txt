@@ -15,5 +15,8 @@
       cant seem to send anything anymore!  but its still selecting!
     - the openssl sender stuff doesnt get passed on to netcat until
       one select later..  
-  some of this sounds like its my fault, but some of it sounds
-  potentially like a python issue..  needs more investigation!
+  - Tried repro on freebsd. bug was not observed.  I tried all
+    combinations of -sssl-in and -sssl-out and tried text and
+    EOF from both sides.
+  - Repros fine on my ubuntu box.  I am pretty sure this was tested
+    earlier.  perhaps its due to some software update in python or openssl?
