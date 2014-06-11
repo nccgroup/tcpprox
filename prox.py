@@ -223,7 +223,7 @@ def getopts() :
     p.add_option('-6', dest='ip6', action='store_true', help="Use IPv6")
     p.add_option("-b", dest="bindAddr", default="0.0.0.0", help="Address to bind to")
     p.add_option("-L", dest="locPort", type="int", help="Local port to listen on")
-    p.add_option("-s", dest="ssl", action="store_true", help="Use SSL for incomign and outgoing connections")
+    p.add_option("-s", dest="ssl", action="store_true", help="Use SSL for incoming and outgoing connections")
     p.add_option("--ssl-in", dest="sslIn", action="store_true", help="Use SSL for incoming connections")
     p.add_option("--ssl-out", dest="sslOut", action="store_true", help="Use SSL for outgoing connections")
     p.add_option('-3', dest='sslV3', action='store_true', help='Use SSLv3 protocol')
