@@ -5,7 +5,7 @@ NAME
 SYNOPSIS
     prox.py [opts] addr port
     prox.py [opts] -s [-C cert] [-A cname] addr port
-    opts: [-1] [-6] [-b bindaddr] [-L localport] [-l logfile] [--ssl-in] [--ssl-out] [-3] [-T]
+    opts: [-1] [-6] [-b bindaddr] [-L localport] [-l logfile] [-m mod:args] [--ssl-in] [--ssl-out] [-3] [-T]
 
 DESCRIPTION
     The prox.py tool provides a TCP proxy that proxies data between
@@ -60,6 +60,15 @@ DESCRIPTION
     extension. More details of the certificate creation can be found in
     the documentation of the ca.py tool.
 
+    The -m option allows multiple filter plugin modules to be specified.
+    To specify a module, specify its name and an argument, separated
+    by a colon. Each module is imported and initialized by calling an
+    init function with its argument string. When proxying data, each
+    buffer is passed to the filter function of each module, in order,
+    before the data is forwarded and logged. The filter function should
+    take the address, direction and buffer as an argument and returns an
+    updated buffer.
+
     The prox.py utility can be run from a single file without any
     dependencies other than Python unless the -A option is used, in
     which case ca.py must be present and the M2Crypto package must
@@ -90,6 +99,12 @@ EXAMPLES
     IPv4-in-IPv6 address is used to specify the target.
 
         $ ./prox.py -6 -L 8888 ::ffff:173.194.64.147 80
+
+    Proxy incoming data connections to port 1234 and proxy the
+    data to 1.2.3.4 port 1234, while changing all letters back to
+    the client to uppercase:
+
+        $ ./prox.py -m modFiltCase:dummyArg 1.2.3.4 1234
 
 BUGS
     The SSL handshake is performed synchronously for implementation

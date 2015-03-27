@@ -157,6 +157,8 @@ class Half(object) :
             return self.error("recv error", e)
         if len(buf) == 0 :
             return self.error("eof", 0)
+        for mod in self.opt.filters :
+            buf = mod.filter(self.addr, self.dir, buf)
         self.dest.queue.append(buf)
         if self.opt.log :
             now = time.time()
@@ -232,6 +234,7 @@ def getopts() :
     p.add_option("-A", dest="autoCname", action="store", help="CName for Auto-generated SSL cert")
     p.add_option('-1', dest='oneshot', action='store_true', help="Handle a single connection")
     p.add_option("-l", dest="logFile", help="Filename to log to")
+    p.add_option("-m", dest="modules", action="append", default=[], help="filtering modules")
     opt,args = p.parse_args()
     if opt.ssl :
         opt.sslIn = True
@@ -258,12 +261,22 @@ def getopts() :
         opt.locPort = opt.port
     return opt
 
+def initModule(modstr) :
+    modname, modargs = modstr.split(':', 1) if ':' in modstr else (modstr,"")
+    try :
+        mod = __import__(modname)
+    except ImportError :
+        fail("could not import %r" % modname)
+    mod.init(modargs)
+    return mod
+
 def main() :
     opt = getopts()
     if opt.sslIn and opt.autoCname :
         autoCert(opt.autoCname, opt.cert, "autocert")
         opt.cert = "autocert"
     opt.log = file(opt.logFile, 'w') if opt.logFile else None
+    opt.filters = map(initModule, opt.modules)
     serverLoop(opt)
 
 if __name__ == '__main__' :
