@@ -35,7 +35,7 @@ def certName(**kw) :
         setattr(n, k, v)
     return n
 
-def makeCert(cn, ca=None, cak=None, CA=False, bits=1024) :
+def makeCert(cn, ca=None, cak=None, CA=False, subjAltNames=None, bits=1024) :
     """
     Make a certificate signed by signer (or self-signed).
     If CA is true, make a key for CA use, otherwise for SSL.
@@ -56,6 +56,8 @@ def makeCert(cn, ca=None, cak=None, CA=False, bits=1024) :
     else :
         cert.add_ext(X509.new_extension('basicConstraints', 'CA:FALSE'))
         cert.add_ext(X509.new_extension("nsComment", "SSL Server")) # XXX?
+        if subjAltNames != None:
+            cert.add_ext(X509.new_extension("subjectAltName", subjAltNames))
     ## XXX for CA, keyid, dirname, serial?
     #cert.add_ext(X509.new_extension('authorityKeyIdentifier', ca.get_fingerprint()))
     cert.set_issuer(ca.get_subject())
@@ -103,6 +105,7 @@ def getopts() :
     p.add_option("-o", dest="outName", default=None, help="Name of output file")
     p.add_option("-c", dest="makeCA", action="store_true", help="Create a CA cert")
     p.add_option("-s", dest="selfSign", action="store_true", help="Create a self-signed cert")
+    p.add_option("-a", dest="subjAltNames", default=None, help="List of subject alternative names e.g. DNS:example.com, IP:1.2.3.4, email:foo@bar.com")
     opt,args = p.parse_args()
     if opt.makeCA and len(args) == 0 :
         args = ["My Super CA"]
@@ -124,7 +127,7 @@ def main() :
     else :
         cacert, cakey = loadOrDie(opt.caName)
 
-    c,k = makeCert(opt.cname, CA=opt.makeCA, ca=cacert, cak=cakey, bits=1024)
+    c,k = makeCert(opt.cname, CA=opt.makeCA, ca=cacert, cak=cakey, subjAltNames=opt.subjAltNames, bits=2048)
 
     names = saveOrDie(c, k, opt.outName)
     print "generated", ', '.join(names)
