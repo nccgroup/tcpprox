@@ -16,18 +16,21 @@ DESCRIPTION
     or the file specified with the -o argument. Without the -c option,
     ca.py will generate an SSL certificate for cname (which is a
     required argument) to cert.pem or to the file specified with the
-    -o argument. If the -s option is given, the SSL certificate will
+    -o argument.  If the -s option is given, the SSL certificate will
     be self-signed, otherwise it will be signed with the CA key specified
     by the -C option or in the ca.pem file.  Certificate names 
     specified with the -o and -C option should not include the ".pem" suffix. 
 
     Certificates are written out to a ".pem" file and include both
-    the certificate information as well as the RSA key. For convenience
-    the certificate is also written out in X509 DER format into a ".cer"
-    file. A separate script, pkcs12.sh (or pkcs12.bat) is provided 
-    to convert the ".pem" certificate into PKCS-12 format into a ".pfx"
-    file if necessary. It requires that the openssl command line be
-    available.
+    the certificate information as well as the RSA key. When the certificate
+    is signed by a CA certificate, the CA certificate (but not it's private
+    key) is also included in the file. A web server can use this file
+    to find the private key and the entire certificate chain.  For 
+    convenience the certificate is also written out in X509 DER format into 
+    a ".cer" file, but without the private key or the CA certificate. A 
+    separate script, pkcs12.sh (or pkcs12.bat) is provided to convert the 
+    ".pem" certificate into PKCS-12 format into a ".pfx" file if necessary. 
+    It requires that the openssl command line be available.
 
 
 EXAMPLES

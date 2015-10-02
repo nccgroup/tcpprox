@@ -42,8 +42,11 @@ def makeCert(cn, ca=None, cak=None, CA=False, bits=1024) :
     """
     k = makeRSA(bits)
     cert = X509.X509()
+    chain = [cert]
     if cak is None : # self-signed
         ca,cak = cert,k
+    else :
+        chain.append(ca)
     cert.set_version(2);
     cert.set_serial_number(random.randint(0,0xffffffff)) # arbitrary range
     now = int(time.time())
@@ -60,7 +63,7 @@ def makeCert(cn, ca=None, cak=None, CA=False, bits=1024) :
     #cert.add_ext(X509.new_extension('authorityKeyIdentifier', ca.get_fingerprint()))
     cert.set_issuer(ca.get_subject())
     cert.sign(cak, "sha1")
-    return cert, k
+    return chain, k
 
 pwCb = lambda *args : None
 
@@ -69,11 +72,14 @@ def save(fn, dat) :
     f.write(dat)
     f.close()
 
-def saveCert(c, k, name) :
-    """Save a cert and its private key."""
+def saveCerts(cs, k, name) :
+    """Save a cert chain and its private key to a PEM file,
+       and the first cert to a CER file."""
     namePem = name + ".pem"
     nameCer = name + ".cer"
-    save(namePem, c.as_pem() + k.as_pem(cipher=None))
+    pems = ''.join(c.as_pem() for c in cs)
+    save(namePem, pems + k.as_pem(cipher=None))
+    c = cs[0]
     c.save(nameCer, X509.FORMAT_DER)
     return namePem, nameCer
 
@@ -91,9 +97,9 @@ def loadOrDie(name) :
     except Exception,e :
         fail("error loading cert %r: %s", name, e)
 
-def saveOrDie(c, k, name) :
+def saveOrDie(cs, k, name) :
     try :
-        return saveCert(c, k, name)
+        return saveCerts(cs, k, name)
     except Exception, e :
         fail("error saving cert %r: %s", name, e)
 
@@ -124,9 +130,9 @@ def main() :
     else :
         cacert, cakey = loadOrDie(opt.caName)
 
-    c,k = makeCert(opt.cname, CA=opt.makeCA, ca=cacert, cak=cakey, bits=1024)
+    chain,privk = makeCert(opt.cname, CA=opt.makeCA, ca=cacert, cak=cakey, bits=1024)
 
-    names = saveOrDie(c, k, opt.outName)
+    names = saveOrDie(chain, privk, opt.outName)
     print "generated", ', '.join(names)
 
 if __name__ == '__main__' :
