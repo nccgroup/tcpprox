@@ -5,7 +5,7 @@ NAME
 SYNOPSIS
     prox.py [opts] addr port
     prox.py [opts] -s [-C cert] [-A cname] addr port
-    opts: [-1] [-6] [-b bindaddr] [-L localport] [-l logfile] [-m mod:args] [--ssl-in] [--ssl-out] [-3] [-T]
+    opts: [-1] [-6] [-b bindaddr] [-L localport] [-l logfile] [-m mod:args] [--ssl-in] [--ssl-out] [-3] [-T] [-O]
 
 DESCRIPTION
     The prox.py tool provides a TCP proxy that proxies data between
@@ -23,6 +23,12 @@ DESCRIPTION
     Normally the program will accept any number of TCP connections
     and proxy them all (possibly concurrently) unless the -1 option
     is given, in which case only one connection is processed.
+
+    The option -O relies on SO_ORIGINAL_DST option set on the client
+    socket by iptables REDIRECT target to get the original destination.
+    This options does not need (and even ignores) addr and port arguments.
+    -O (without -1) allows a single process to proxy connections to
+    multiple destinations. As it relies on iptables, it is Linux-only.
 
     If a log filename is specified with the -l option, all data
     proxied by the program will be written out to the specified log
@@ -105,6 +111,12 @@ EXAMPLES
     the client to uppercase:
 
         $ ./prox.py -m modFiltCase:dummyArg 1.2.3.4 1234
+
+    Proxy multiple connections on a NAT system with iptables (transparent-proxy like):
+        $ sudo iptables -t nat -A PREROUTING -p tcp --dport 9001 -j REDIRECT --to 8888
+        $ sudo iptables -t nat -A PREROUTING -p tcp --dport 80 -j REDIRECT --to 8888
+        $ ./prox.py -L 8888 -O
+
 
 BUGS
     The SSL handshake is performed synchronously for implementation
