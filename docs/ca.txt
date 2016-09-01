@@ -4,7 +4,7 @@ NAME
 
 SYNOPSIS
     ca.py [-o outfile] -c
-    ca.py [-C cafile] [-o outfile] [-s] cname
+    ca.py [-C cafile] [-o outfile] [-s] [-a altnames] cname
 
 DESCRIPTION
     The ca (certificate authority) tool provides a simplified interface
@@ -18,8 +18,10 @@ DESCRIPTION
     required argument) to cert.pem or to the file specified with the
     -o argument.  If the -s option is given, the SSL certificate will
     be self-signed, otherwise it will be signed with the CA key specified
-    by the -C option or in the ca.pem file.  Certificate names 
-    specified with the -o and -C option should not include the ".pem" suffix. 
+    by the -C option or in the ca.pem file.  If the -a option provides
+    a list of altnames, they are attached to the certificate during creation.
+    Certificate names specified with the -o and -C option should not 
+    include the ".pem" suffix. 
 
     Certificates are written out to a ".pem" file and include both
     the certificate information as well as the RSA key. When the certificate
@@ -43,9 +45,12 @@ EXAMPLES
 
         $ ./ca.py www.google.com
 
-    Generate a self-signed certificate for www.evil.com into foo.pem:
+    Generate a self-signed certificate for www.evil.com with several
+    alt names into foo.pem:
 
-        $ ./ca.py -s -o foo www.evil.com
+        $ ./ca.py -s -o foo \
+            -a "DNS:www.evil.com, IP:8.8.8.8, email:dr@evil.com" \
+            www.evil.com
 
     Generate an SSL certificate for www.isecpartners.com signed by
     AltCA.pem into isec.pem:
