@@ -35,7 +35,7 @@ def certName(**kw) :
         setattr(n, k, v)
     return n
 
-def makeCert(cn, ca=None, cak=None, CA=False, subjAltNames=None, bits=1024) :
+def makeCert(cn, ca=None, cak=None, CA=False, subjAltNames=None, bits=2048) :
     """
     Make a certificate signed by signer (or self-signed).
     If CA is true, make a key for CA use, otherwise for SSL.
@@ -133,7 +133,7 @@ def main() :
     else :
         cacert, cakey = loadOrDie(opt.caName)
 
-    chain,privk = makeCert(opt.cname, CA=opt.makeCA, ca=cacert, cak=cakey, subjAltNames=opt.subjAltNames, bits=1024)
+    chain,privk = makeCert(opt.cname, CA=opt.makeCA, ca=cacert, cak=cakey, subjAltNames=opt.subjAltNames, bits=2048)
 
     names = saveOrDie(chain, privk, opt.outName)
     print "generated", ', '.join(names)
