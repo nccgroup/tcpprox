@@ -39,12 +39,18 @@ def tcpListen(six, addr, port, blk, sslProto, cert=None, key=None) :
     s.setblocking(blk)
     return s
 
-def tcpConnect(six, addr, port, blk, sslProto) :
+def tcpConnect(six, addr, port, blk, sslProto, clientCert=None) :
     """Returned a connected client socket (blocking on connect...)"""
     s = socket.socket(AF_INET6 if six else AF_INET, SOCK_STREAM)
     s.setsockopt(IPPROTO_TCP, TCP_NODELAY, 1)
     if sslProto is not None :
-        s = ssl.wrap_socket(s, cert_reqs=ssl.CERT_NONE, ssl_version=sslProto)
+        if clientCert is None:
+            certfile = None
+            keyfile = None
+        else:
+            certfile = clientCert + '.cert'
+            keyfile = clientCert + '.key'
+        s = ssl.wrap_socket(s, certfile=certfile, keyfile=keyfile, cert_reqs=ssl.CERT_NONE, ssl_version=sslProto)
     s.connect((addr,port))
     s.setblocking(blk)
     return s
@@ -187,7 +193,7 @@ class Proxy(object) :
         self.cl = Half(opt, sock, addr, 'i')
         # note: blocking connect for simplicity for now...
         ver = getSslVers(opt, opt.sslOut)
-        peer = tcpConnect(opt.ip6, opt.addr, opt.port, 0, ver)
+        peer = tcpConnect(opt.ip6, opt.addr, opt.port, 0, ver, opt.clientCert)
         self.peer = Half(opt, peer, addr, 'o')
 
         self.cl.dest = self.peer
@@ -247,6 +253,7 @@ def getopts() :
     p.add_option("-l", dest="logFile", help="Filename to log to")
     p.add_option("-m", dest="modules", action="append", default=[], help="filtering modules")
     p.add_option("-O", dest="originalDst", action="store_true", help="Use SO_ORIGINAL_DST for destination")
+    p.add_option("-c", dest="clientCert", default=None, help="Client certificate to present to server")
     opt,args = p.parse_args()
     if opt.ssl :
         opt.sslIn = True
